@@ -19,7 +19,7 @@ public:
 
 private:
     virtual void    draw(sf::RenderTarget& target, sf::RenderStates states) const;
-    void            reveal(sf::Vector2i click_pos);
+    void            reveal(int click_row, int click_col);
 
 private:
     enum Tile_type {
