@@ -1,11 +1,12 @@
 #include "Field.hpp"
 
 #include <random>
+#include <iostream>
 
 static constexpr float  tile_size   {32.f};
 
 Field::Field(const Size size)
-    : size (size)
+    : size {size}
 {
     texture.loadFromFile("sprites.png");
 
@@ -44,7 +45,6 @@ Field::Field(const Size size)
     for (std::size_t r{0}; r < grid.size(); ++r) {
         for (std::size_t c {0}; c < grid[r].size(); ++c) {
             std::size_t i {((r * grid[r].size()) + c) * 6};
-
             vertex_grid[i].position = sf::Vector2f{c * tile_size, r * tile_size};
             vertex_grid[i + 1].position = sf::Vector2f{(c + 1) * tile_size, r * tile_size};
             vertex_grid[i + 2].position = sf::Vector2f{c * tile_size, (r + 1) * tile_size};
@@ -69,10 +69,16 @@ Field::~Field()
 
 void Field::check_click(const sf::Vector2i click_pos)
 {
+    // check that the click is wtihin the bounds of the field
+    // if this isn't done then clicking outside the field will result in indeing
+    // out of the bounds of the array and the game crashes
+    if (!vertex_grid.getBounds().contains(sf::Vector2f{click_pos})) {
+        return;
+    }
     // determine which row and column the click was on
-    auto relative_pos = click_pos - sf::Vector2i(vertex_grid[0].position);
-    const auto click_row = relative_pos.y / static_cast<int>(tile_size);
-    const auto click_col = relative_pos.x / static_cast<int>(tile_size);
+    auto        relative_pos    = click_pos - sf::Vector2i{vertex_grid[0].position};
+    const auto  click_row       = relative_pos.y / static_cast<int>(tile_size);
+    const auto  click_col       = relative_pos.x / static_cast<int>(tile_size);
     if (!been_clicked) {
         generate_field(click_row, click_col);
     }
@@ -83,6 +89,9 @@ void Field::check_click(const sf::Vector2i click_pos)
                 reveal(r, c);
             }
         }
+        // set the bomb that was clicked on to be an explosion
+        grid[click_row][click_col] = explosion;
+        reveal(click_row, click_col);
     }
     else {
         reveal(click_row, click_col);
@@ -98,6 +107,8 @@ void Field::draw(sf::RenderTarget& target, sf::RenderStates states) const
 
 void Field::generate_field(const int click_row, const int click_col)
 {
+    // make sure that the field doesn't get generated again on the next click
+    been_clicked = true;
     // randomly generate the position of the mines
     int num_mines {};
     switch (size) {
@@ -136,44 +147,61 @@ void Field::generate_field(const int click_row, const int click_col)
         grid[row][col] = mine;
     }
 
+    // includes bounds checking
+    auto is_mine = [this](std::size_t row, std::size_t col) -> bool {
+        const auto row_within_grid = row >= 0 && row < grid.size();
+        const auto col_within_grid = col >= 0 && col < grid[0].size();
+        if (row_within_grid && col_within_grid) {
+            return grid[row][col] == mine;
+        }
+        else {
+            return false;
+        }
+    };
+
     for (std::size_t r {0}; r < grid.size(); ++r) {
         for (std::size_t c {0}; c < grid[r].size(); ++c) {
-            std::size_t i {((r * grid[r].size()) + c) * 6};
-            vertex_grid[i].position = sf::Vector2f{c * tile_size, r * tile_size};
-            vertex_grid[i + 1].position = sf::Vector2f{(c + 1) * tile_size, r * tile_size};
-            vertex_grid[i + 2].position = sf::Vector2f{c * tile_size, (r + 1) * tile_size};
-            vertex_grid[i + 3].position = sf::Vector2f{c * tile_size, (r + 1) * tile_size};
-            vertex_grid[i + 4].position = sf::Vector2f{(c + 1) * tile_size, r * tile_size};
-            vertex_grid[i + 5].position = sf::Vector2f{(c + 1) * tile_size, (r + 1) * tile_size};
+            // don't count adjecent mines for a tile that is a mine
+            if (grid[r][c] == mine) {
+                continue;
+            }
 
-            // using weakly-typed enum to int conversion
-            vertex_grid[i].texCoords = sf::Vector2f{hidden * tile_size, 0};
-            vertex_grid[i + 1].texCoords = sf::Vector2f{(hidden + 1) * tile_size, 0};
-            vertex_grid[i + 2].texCoords = sf::Vector2f{hidden * tile_size, tile_size};
-            vertex_grid[i + 3].texCoords = sf::Vector2f{hidden * tile_size, tile_size};
-            vertex_grid[i + 4].texCoords = sf::Vector2f{(hidden + 1) * tile_size, 0};
-            vertex_grid[i + 5].texCoords = sf::Vector2f{(hidden + 1) * tile_size, tile_size};
-
-            
-            /*
-            Used to test for the result of the random mine generation
-                const Tile_type type {grid[r][c]};
-                vertex_grid[i].texCoords = sf::Vector2f{type * tile_size, 0};
-                vertex_grid[i + 1].texCoords = sf::Vector2f{(type + 1) * tile_size, 0};
-                vertex_grid[i + 2].texCoords = sf::Vector2f{type * tile_size, tile_size};
-                vertex_grid[i + 3].texCoords = sf::Vector2f{type * tile_size, tile_size};
-                vertex_grid[i + 4].texCoords = sf::Vector2f{(type + 1) * tile_size, 0};
-                vertex_grid[i + 5].texCoords = sf::Vector2f{(type + 1) * tile_size, tile_size};
-            */
+            auto adjecent_mines = 0;
+            // this looks ugly but I don't know any other way to do this
+            // goes through each adjecent spot and sees if it is a mine
+            if (is_mine(r - 1, c - 1)) {
+                ++adjecent_mines;
+            }
+            if (is_mine(r - 1, c)) {
+                ++adjecent_mines;
+            }
+            if (is_mine(r - 1, c + 1)) {
+                ++adjecent_mines;
+            }
+            if (is_mine(r, c - 1)) {
+                ++adjecent_mines;
+            }
+            if (is_mine(r, c + 1)) {
+                ++adjecent_mines;
+            }
+            if (is_mine(r + 1, c - 1)) {
+                ++adjecent_mines;
+            }
+            if (is_mine(r + 1, c)) {
+                ++adjecent_mines;
+            }
+            if (is_mine(r + 1, c + 1)) {
+                ++adjecent_mines;
+            }
+            grid[r][c] = static_cast<Tile_type>(adjecent_mines);
         }
-    } 
-    been_clicked = true;
+    }
 }
 
 void Field::reveal(const int click_row, const int click_col)
 {
-    const std::size_t   i       = {((click_row * grid[0].size()) + click_col) * 6};
-    const Tile_type     type    {grid[click_row][click_col]};
+    const std::size_t i {((click_row * grid[0].size()) + click_col) * 6};
+    const Tile_type type {grid[click_row][click_col]};
 
     vertex_grid[i].texCoords = sf::Vector2f{type * tile_size, 0};
     vertex_grid[i + 1].texCoords = sf::Vector2f{(type + 1) * tile_size, 0};

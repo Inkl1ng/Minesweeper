@@ -34,13 +34,14 @@ private:
         seven,
         eight,
         mine,
+        explosion,
         hidden,
         flag,
     };
 
-    std::vector<std::vector<Tile_type>> grid            {};
-    sf::VertexArray                     vertex_grid     {};
+    std::vector<std::vector<Tile_type>> grid;
+    sf::VertexArray                     vertex_grid;
     Size                                size;
-    sf::Texture                         texture         {};
+    sf::Texture                         texture;
     bool                                been_clicked    {false};
 };
