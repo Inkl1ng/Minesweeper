@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <SFML/Graphics.hpp>
+#include <SFML/System.hpp>
 
 class Field : public sf::Drawable {
 public:

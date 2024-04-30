@@ -1,8 +1,6 @@
 #include "Game.hpp"
-#include "SFML/Window/Keyboard.hpp"
-#include "SFML/Window/Mouse.hpp"
 
-#include <iostream>
+#include <SFML/System.hpp>
 
 Game::Game()
     : window {sf::VideoMode{1280, 960}, "Minesweeper", sf::Style::Close}
@@ -37,7 +35,7 @@ void Game::process_input()
     // use right click. Also I don't think that SFML is registering alt + click
     // which is commonly used on laptops to input a RMB click.
     const bool rmb_clicked {sf::Mouse::isButtonPressed(sf::Mouse::Right)
-                            || lmb_clicked && sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt)};
+        || lmb_clicked && sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt)};
 
     // This makes sures that only one action is done per mouse click.
     // Wihtout this, holding down LMB and dragging the mouse would keep reveal

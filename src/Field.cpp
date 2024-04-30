@@ -1,7 +1,6 @@
 #include "Field.hpp"
 
 #include <random>
-#include <iostream>
 
 static constexpr float  tile_size   {32.f};
 
@@ -244,12 +243,12 @@ void Field::reveal(const int click_row, const int click_col)
         return vertex_grid[i].texCoords.x != hidden * tile_size;
     };
 
-    vertex_grid[i].texCoords = sf::Vector2f{type * tile_size, 0};
-    vertex_grid[i + 1].texCoords = sf::Vector2f{(type + 1) * tile_size, 0};
-    vertex_grid[i + 2].texCoords = sf::Vector2f{type * tile_size, tile_size};
-    vertex_grid[i + 3].texCoords = sf::Vector2f{type * tile_size, tile_size};
-    vertex_grid[i + 4].texCoords = sf::Vector2f{(type + 1) * tile_size, 0};
-    vertex_grid[i + 5].texCoords = sf::Vector2f{(type + 1) * tile_size, tile_size};
+    vertex_grid[i].texCoords.x = type * tile_size;
+    vertex_grid[i + 1].texCoords.x = (type + 1) * tile_size;
+    vertex_grid[i + 2].texCoords.x = type * tile_size;
+    vertex_grid[i + 3].texCoords.x = type * tile_size;
+    vertex_grid[i + 4].texCoords.x = (type + 1) * tile_size;
+    vertex_grid[i + 5].texCoords.x = (type + 1) * tile_size;
 
     if (type != empty) {
         return;
