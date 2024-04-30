@@ -149,9 +149,7 @@ void Field::generate_field(const int click_row, const int click_col)
 
     // includes bounds checking
     auto is_mine = [this](std::size_t row, std::size_t col) -> bool {
-        const auto row_within_grid = row >= 0 && row < grid.size();
-        const auto col_within_grid = col >= 0 && col < grid[0].size();
-        if (row_within_grid && col_within_grid) {
+        if (this->is_within_grid(row, col)) {
             return grid[row][col] == mine;
         }
         else {
@@ -203,10 +201,34 @@ void Field::reveal(const int click_row, const int click_col)
     const std::size_t i {((click_row * grid[0].size()) + click_col) * 6};
     const Tile_type type {grid[click_row][click_col]};
 
+    auto is_revealed = [this](const int row, const int col) -> bool {
+        const std::size_t i {((row * this->grid[0].size()) + col) * 6};
+        return vertex_grid[i].texCoords.x != hidden * tile_size;
+    };
+
     vertex_grid[i].texCoords = sf::Vector2f{type * tile_size, 0};
     vertex_grid[i + 1].texCoords = sf::Vector2f{(type + 1) * tile_size, 0};
     vertex_grid[i + 2].texCoords = sf::Vector2f{type * tile_size, tile_size};
     vertex_grid[i + 3].texCoords = sf::Vector2f{type * tile_size, tile_size};
     vertex_grid[i + 4].texCoords = sf::Vector2f{(type + 1) * tile_size, 0};
     vertex_grid[i + 5].texCoords = sf::Vector2f{(type + 1) * tile_size, tile_size};
+
+    if (type != empty) {
+        return;
+    }
+
+    // Reveal all adjacent tiles if this tile is empty.
+    // If any of those adjacent tiles are empty then reveal those.
+    for (auto r = click_row - 1; r < click_row + 2; ++r) {
+        for (auto c = click_col - 1; c < click_col + 2; ++c) {
+            if (is_within_grid(r, c) && !is_revealed(r, c)) {
+                reveal(r, c);
+            }
+        }
+    }
+}
+
+bool Field::is_within_grid(const int row, const int col) const
+{
+    return row >= 0 && row < grid.size() && col >= 0 && col < grid[row].size();
 }

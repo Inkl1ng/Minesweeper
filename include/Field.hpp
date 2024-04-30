@@ -21,6 +21,9 @@ private:
     virtual void    draw(sf::RenderTarget& target, sf::RenderStates states) const;
     void            reveal(int click_row, int click_col);
 
+    // helper methods
+    bool        is_within_grid(int row, int col) const;
+
 private:
     enum Tile_type {
         // going to use enum to integer conversion to set texture coordinates
