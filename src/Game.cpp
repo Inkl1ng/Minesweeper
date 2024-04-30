@@ -1,4 +1,6 @@
 #include "Game.hpp"
+#include "SFML/Window/Keyboard.hpp"
+#include "SFML/Window/Mouse.hpp"
 
 #include <iostream>
 
@@ -35,17 +37,24 @@ void Game::process_input()
     // use right click. Also I don't think that SFML is registering alt + click
     // which is commonly used on laptops to input a RMB click.
     const bool rmb_clicked {sf::Mouse::isButtonPressed(sf::Mouse::Right)
-                            || (lmb_clicked && sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt))};
-    if (!mouse_pressed && rmb_clicked && window.hasFocus()) {
-        field.place_flag(sf::Mouse::getPosition(window));
-        mouse_pressed = true;
+                            || lmb_clicked && sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt)};
+
+    // This makes sures that only one action is done per mouse click.
+    // Wihtout this, holding down LMB and dragging the mouse would keep reveal
+    // every tile that the mouse goes over.
+    if (mouse_pressed == true || !window.hasFocus()) {
+        if (!lmb_clicked && !rmb_clicked) {
+            mouse_pressed = false;
+        }
+        return;
     }
-    else if (!mouse_pressed && lmb_clicked && window.hasFocus()) {
+    else if (lmb_clicked) {
         field.check_click(sf::Mouse::getPosition(window));
         mouse_pressed = true;
     }
-    else if (!lmb_clicked || !rmb_clicked) {
-        mouse_pressed = false;
+    else if (rmb_clicked) {
+        field.place_flag(sf::Mouse::getPosition(window));
+        mouse_pressed = true;
     }
 }
 
