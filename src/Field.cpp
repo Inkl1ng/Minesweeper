@@ -83,6 +83,10 @@ void Field::check_click(const sf::Vector2i click_pos)
     if (!been_clicked) {
         generate_field(click_row, click_col);
     }
+    // Don't reveal the tile if the tile has been flagged.
+    if (vertex_grid[coord_to_index(click_row, click_col)].texCoords.x == flag * tile_size) {
+        return;
+    }
 
     // if the player clicked on a mine, reveal the entire grid
     if (grid[click_row][click_col] == mine) {
@@ -234,11 +238,6 @@ void Field::reveal(const int click_row, const int click_col)
 {
     const auto i = coord_to_index(click_row, click_col);
     const Tile_type type {grid[click_row][click_col]};
-
-    // Don't reveal the tile if the tile has been flagged.
-    if (vertex_grid[i].texCoords.x == flag * tile_size) {
-        return;
-    }
 
     auto is_revealed = [this](const int row, const int col) -> bool {
         const auto i = coord_to_index(row, col);
