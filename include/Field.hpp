@@ -15,6 +15,7 @@ public:
     virtual ~Field();
 
     void    check_click(sf::Vector2i click_pos);
+    void    place_flag(sf::Vector2i click_pos);
     void    generate_field(int click_row, int click_col);
 
 private:

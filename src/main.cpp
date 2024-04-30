@@ -8,8 +8,6 @@ int main() {
 
     Game game;
     game.run();
-    // Field field {Field::small};
-    // field.generate_field(0, 0);
 
     return 0;
 }

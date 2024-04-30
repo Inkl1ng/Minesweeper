@@ -75,13 +75,15 @@ void Field::check_click(const sf::Vector2i click_pos)
     if (!vertex_grid.getBounds().contains(sf::Vector2f{click_pos})) {
         return;
     }
+
     // determine which row and column the click was on
-    auto relative_pos = click_pos - sf::Vector2i{vertex_grid[0].position};
+    const auto relative_pos = click_pos - sf::Vector2i{vertex_grid[0].position};
     const auto click_row = relative_pos.y / static_cast<int>(tile_size);
     const auto click_col = relative_pos.x / static_cast<int>(tile_size);
     if (!been_clicked) {
         generate_field(click_row, click_col);
     }
+
     // if the player clicked on a mine, reveal the entire grid
     if (grid[click_row][click_col] == mine) {
         for (std::size_t r {0}; r < grid.size(); ++r) {
@@ -95,6 +97,38 @@ void Field::check_click(const sf::Vector2i click_pos)
     }
     else {
         reveal(click_row, click_col);
+    }
+}
+
+void Field::place_flag(const sf::Vector2i click_pos)
+{
+    const auto relative_pos = click_pos - sf::Vector2i{vertex_grid[0].position};
+    const auto click_row = relative_pos.y / static_cast<int>(tile_size);
+    const auto click_col = relative_pos.x / static_cast<int>(tile_size);
+    
+    const auto i = coord_to_index(click_row, click_col);
+    // Get the type of tile displayed at the index
+    const Tile_type displayed {static_cast<Tile_type>(vertex_grid[i].texCoords.x / tile_size)};
+    // Can't place flags on tiles that are already revealed so don't do
+    // anything in that case.
+    // If the tile is already a flag, then remove the flag
+    if (displayed == flag) {
+        vertex_grid[i].texCoords.x = hidden * tile_size;
+        vertex_grid[i + 1].texCoords.x = (hidden + 1) * tile_size;
+        vertex_grid[i + 2].texCoords.x = hidden * tile_size;
+        vertex_grid[i + 3].texCoords.x = hidden * tile_size;
+        vertex_grid[i + 4].texCoords.x = (hidden + 1) * tile_size;
+        vertex_grid[i + 5].texCoords.x = (hidden + 1) * tile_size;
+    }
+    // Switch the texture to be a flag.
+    // Only switching the X-coordinate because the Y-coordinate doesn't change
+    else if (displayed == hidden) {
+        vertex_grid[i].texCoords.x = flag * tile_size;
+        vertex_grid[i + 1].texCoords.x = (flag + 1) * tile_size;
+        vertex_grid[i + 2].texCoords.x = flag * tile_size;
+        vertex_grid[i + 3].texCoords.x = flag * tile_size;
+        vertex_grid[i + 4].texCoords.x = (flag + 1) * tile_size;
+        vertex_grid[i + 5].texCoords.x = (flag + 1) * tile_size;
     }
 }
 
@@ -200,6 +234,11 @@ void Field::reveal(const int click_row, const int click_col)
 {
     const auto i = coord_to_index(click_row, click_col);
     const Tile_type type {grid[click_row][click_col]};
+
+    // Don't reveal the tile if the tile has been flagged.
+    if (vertex_grid[i].texCoords.x == flag * tile_size) {
+        return;
+    }
 
     auto is_revealed = [this](const int row, const int col) -> bool {
         const auto i = coord_to_index(row, col);
