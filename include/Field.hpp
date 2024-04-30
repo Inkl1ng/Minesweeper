@@ -23,6 +23,7 @@ private:
 
     // helper methods
     bool        is_within_grid(int row, int col) const;
+    std::size_t coord_to_index(int row, int col) const;
 
 private:
     enum Tile_type {

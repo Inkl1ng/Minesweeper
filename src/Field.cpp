@@ -44,7 +44,7 @@ Field::Field(const Size size)
     // start the grid out as all hidden tiles
     for (std::size_t r{0}; r < grid.size(); ++r) {
         for (std::size_t c {0}; c < grid[r].size(); ++c) {
-            std::size_t i {((r * grid[r].size()) + c) * 6};
+            const auto i = coord_to_index(r, c);
             vertex_grid[i].position = sf::Vector2f{c * tile_size, r * tile_size};
             vertex_grid[i + 1].position = sf::Vector2f{(c + 1) * tile_size, r * tile_size};
             vertex_grid[i + 2].position = sf::Vector2f{c * tile_size, (r + 1) * tile_size};
@@ -76,16 +76,16 @@ void Field::check_click(const sf::Vector2i click_pos)
         return;
     }
     // determine which row and column the click was on
-    auto        relative_pos    = click_pos - sf::Vector2i{vertex_grid[0].position};
-    const auto  click_row       = relative_pos.y / static_cast<int>(tile_size);
-    const auto  click_col       = relative_pos.x / static_cast<int>(tile_size);
+    auto relative_pos = click_pos - sf::Vector2i{vertex_grid[0].position};
+    const auto click_row = relative_pos.y / static_cast<int>(tile_size);
+    const auto click_col = relative_pos.x / static_cast<int>(tile_size);
     if (!been_clicked) {
         generate_field(click_row, click_col);
     }
     // if the player clicked on a mine, reveal the entire grid
     if (grid[click_row][click_col] == mine) {
-        for (auto r {0}; r < grid.size(); ++r) {
-            for (auto c {0}; c < grid[r].size(); ++c) {
+        for (std::size_t r {0}; r < grid.size(); ++r) {
+            for (std::size_t c {0}; c < grid[r].size(); ++c) {
                 reveal(r, c);
             }
         }
@@ -198,11 +198,11 @@ void Field::generate_field(const int click_row, const int click_col)
 
 void Field::reveal(const int click_row, const int click_col)
 {
-    const std::size_t i {((click_row * grid[0].size()) + click_col) * 6};
+    const auto i = coord_to_index(click_row, click_col);
     const Tile_type type {grid[click_row][click_col]};
 
     auto is_revealed = [this](const int row, const int col) -> bool {
-        const std::size_t i {((row * this->grid[0].size()) + col) * 6};
+        const auto i = coord_to_index(row, col);
         return vertex_grid[i].texCoords.x != hidden * tile_size;
     };
 
@@ -231,4 +231,9 @@ void Field::reveal(const int click_row, const int click_col)
 bool Field::is_within_grid(const int row, const int col) const
 {
     return row >= 0 && row < grid.size() && col >= 0 && col < grid[row].size();
+}
+
+std::size_t Field::coord_to_index(const int row, const int col) const
+{
+    return ((row * grid[0].size()) + col) * 6;
 }
