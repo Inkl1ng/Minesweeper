@@ -31,5 +31,12 @@
 *.out
 *.app
 
+# Linux executable
+Minesweeper
+
 # CMake
 /build
+/Debug
+/Release
+/MineSizeRel
+/RelWithDebInfo
