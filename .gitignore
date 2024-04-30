@@ -40,3 +40,6 @@ Minesweeper
 /Release
 /MineSizeRel
 /RelWithDebInfo
+
+# clangD LSP
+/.cache
