@@ -88,7 +88,7 @@ void Field::check_click(const sf::Vector2i click_pos)
     }
 
     // if the player clicked on a mine, reveal the entire grid
-    if (grid[click_row][click_col] == mine) {
+    if (grid[click_row][click_col] == mine && !mine_exploded) {
         for (std::size_t r {0}; r < grid.size(); ++r) {
             for (std::size_t c {0}; c < grid[r].size(); ++c) {
                 reveal(r, c);
@@ -97,6 +97,7 @@ void Field::check_click(const sf::Vector2i click_pos)
         // set the bomb that was clicked on to be an explosion
         grid[click_row][click_col] = explosion;
         reveal(click_row, click_col);
+        mine_exploded = true;
     }
     else {
         reveal(click_row, click_col);

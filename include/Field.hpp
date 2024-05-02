@@ -50,4 +50,5 @@ private:
     Size                                size;
     sf::Texture                         texture;
     bool                                been_clicked    {false};
+    bool                                mine_exploded   {false};
 };
