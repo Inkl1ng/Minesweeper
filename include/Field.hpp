@@ -15,13 +15,13 @@ public:
             Field(Size size);
     virtual ~Field();
 
-    void    check_click(sf::Vector2i click_pos);
-    void    place_flag(sf::Vector2i click_pos);
+    void    check_click(sf::Vector2i click_pos, bool right_click);
     void    generate_field(int click_row, int click_col);
 
 private:
     virtual void    draw(sf::RenderTarget& target, sf::RenderStates states) const;
     void            reveal(int click_row, int click_col);
+    void            place_flag(int click_row, int click_col);
 
     // helper methods
     bool        is_within_grid(int row, int col) const;

@@ -66,7 +66,7 @@ Field::~Field()
 
 }
 
-void Field::check_click(const sf::Vector2i click_pos)
+void Field::check_click(const sf::Vector2i click_pos, const bool right_click)
 {
     // check that the click is wtihin the bounds of the field
     // if this isn't done then clicking outside the field will result in indeing
@@ -79,6 +79,12 @@ void Field::check_click(const sf::Vector2i click_pos)
     const auto relative_pos = click_pos - sf::Vector2i{vertex_grid[0].position};
     const auto click_row = relative_pos.y / static_cast<int>(tile_size);
     const auto click_col = relative_pos.x / static_cast<int>(tile_size);
+    
+    if (right_click) {
+        place_flag(click_row, click_col);
+        return;
+    }
+
     if (!been_clicked) {
         generate_field(click_row, click_col);
     }
@@ -104,12 +110,8 @@ void Field::check_click(const sf::Vector2i click_pos)
     }
 }
 
-void Field::place_flag(const sf::Vector2i click_pos)
+void Field::place_flag(const int click_row, const int click_col)
 {
-    const auto relative_pos = click_pos - sf::Vector2i{vertex_grid[0].position};
-    const auto click_row = relative_pos.y / static_cast<int>(tile_size);
-    const auto click_col = relative_pos.x / static_cast<int>(tile_size);
-    
     const auto i = coord_to_index(click_row, click_col);
     // Get the type of tile displayed at the index
     const Tile_type displayed {static_cast<Tile_type>(vertex_grid[i].texCoords.x / tile_size)};

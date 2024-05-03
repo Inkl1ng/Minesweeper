@@ -46,12 +46,8 @@ void Game::process_input()
         }
         return;
     }
-    else if (lmb_clicked) {
-        field.check_click(sf::Mouse::getPosition(window));
-        mouse_pressed = true;
-    }
-    else if (rmb_clicked) {
-        field.place_flag(sf::Mouse::getPosition(window));
+    else if (lmb_clicked || rmb_clicked) {
+        field.check_click(sf::Mouse::getPosition(window), rmb_clicked);
         mouse_pressed = true;
     }
 }
