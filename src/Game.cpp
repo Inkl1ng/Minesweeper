@@ -10,6 +10,8 @@ Game::Game()
     // This comment is for the initializer list above.
     // The game is set to open up with a medium board and the window is sized
     // to fit a medium board.
+
+    window.setKeyRepeatEnabled(false);
 }
 
 void Game::run()
@@ -29,41 +31,22 @@ void Game::poll_events()
         if (event.type == sf::Event::Closed) {
             window.close();
         }
+        else if (event.type == sf::Event::MouseButtonPressed) {
+            if (event.mouseButton.button == sf::Mouse::Left) {
+                field.check_click(sf::Mouse::getPosition(window), sf::Mouse::Left);
+            }
+            else if (event.mouseButton.button == sf::Mouse::Right) {
+                field.check_click(sf::Mouse::getPosition(window), sf::Mouse::Right);
+            }
+            else if (event.mouseButton.button == sf::Mouse::Middle) {
+                field.check_click(sf::Mouse::getPosition(window), sf::Mouse::Middle);
+            }
+        }
     }
 }
 
 void Game::process_input()
 {
-    const bool lmb_clicked {sf::Mouse::isButtonPressed(sf::Mouse::Left)};
-    // The part after the || is for laptop users who might not have an easy to
-    // use right click. Also I don't think that SFML is registering alt + click
-    // which is commonly used on laptops to input a RMB click.
-    const bool rmb_clicked {sf::Mouse::isButtonPressed(sf::Mouse::Right) 
-        || lmb_clicked && sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt)};
-    const bool middle_click {sf::Mouse::isButtonPressed(sf::Mouse::Middle)
-        || sf::Keyboard::isKeyPressed(sf::Keyboard::Space)};
-
-    // This makes sures that only one action is done per mouse click.
-    // Wihtout this, holding down LMB and dragging the mouse would keep reveal
-    // every tile that the mouse goes over.
-    if (mouse_pressed == true || !window.hasFocus()) {
-        if (!lmb_clicked && !rmb_clicked && !middle_click) {
-            mouse_pressed = false;
-        }
-        return;
-    }
-    else if (middle_click) {
-        field.check_click(sf::Mouse::getPosition(window), sf::Mouse::Middle);
-        mouse_pressed = true;
-    }
-    else if (rmb_clicked) {
-        field.check_click(sf::Mouse::getPosition(window), sf::Mouse::Right);
-        mouse_pressed = true;
-    }
-    else if (lmb_clicked) {
-        field.check_click(sf::Mouse::getPosition(window), sf::Mouse::Left);
-        mouse_pressed = true;
-    }
 }
 
 void Game::update()

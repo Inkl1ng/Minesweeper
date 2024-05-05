@@ -55,6 +55,13 @@ Field::Field(const Size size)
             vertex_grid[i + 4].position = sf::Vector2f{(c + 1) * tile_size, r * tile_size};
             vertex_grid[i + 5].position = sf::Vector2f{(c + 1) * tile_size, (r + 1) * tile_size};
 
+            vertex_grid[i].position.y += 64.f;
+            vertex_grid[i + 1].position.y += 64.f;
+            vertex_grid[i + 2].position.y += 64.f;
+            vertex_grid[i + 3].position.y += 64.f;
+            vertex_grid[i + 4].position.y += 64.f;
+            vertex_grid[i + 5].position.y += 64.f;
+
             vertex_grid[i].texCoords = sf::Vector2f{hidden * tile_size, 0};
             vertex_grid[i + 1].texCoords = sf::Vector2f{(hidden + 1) * tile_size, 0};
             vertex_grid[i + 2].texCoords = sf::Vector2f{hidden * tile_size, tile_size};
@@ -91,12 +98,11 @@ void Field::check_click(const sf::Vector2i click_pos, const sf::Mouse::Button cl
             place_flag(click_row, click_col);
         return;
     }
-    else if (is_number && click_type == sf::Mouse::Middle) {
+    else if (is_number && click_type == sf::Mouse::Middle && been_clicked) {
         chord(click_row, click_col);
         return;
     }
-
-    if (!been_clicked) {
+    else if (click_type == sf::Mouse::Left && !been_clicked) {
         generate_field(click_row, click_col);
     }
     // Don't reveal the tile if the tile has been flagged.
@@ -188,7 +194,7 @@ void Field::chord(const int click_row, const int click_col) {
                 constexpr int tile_size_i = static_cast<int>(tile_size);
                 check_click({c * tile_size_i, r * tile_size_i}, sf::Mouse::Button::Left);
             }
-            else if (is_within_grid(r, c) && !is_flagged(r, c)) {
+            else if (!is_flagged(r, c)) {
                 reveal(r, c);
             }
         }
