@@ -174,11 +174,11 @@ void Field::generate_field(const int click_row, const int click_col)
     // also we are only using getting positive numbers so size_t doesn't matter
     // it does make this code look kinda uglier but that's alright
     std::uniform_int_distribution<std::size_t> rand_row {0, grid.size() - 1};
-    std::uniform_int_distribution<std::size_t> rand_col {0, grid.size() - 1};
+    std::uniform_int_distribution<std::size_t> rand_col {0, grid[0].size() - 1};
 
     for (int i {0}; i < num_mines; ++i) {
         auto row {rand_row(mt)};
-        auto col {rand_row(mt)};
+        auto col {rand_col(mt)};
         while (row == click_row && col == click_col) {
             row = rand_row(mt);
             col = rand_row(mt);
