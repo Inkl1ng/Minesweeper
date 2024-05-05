@@ -3,9 +3,13 @@
 #include <SFML/System.hpp>
 
 Game::Game()
-    : window {sf::VideoMode{1280, 960}, "Minesweeper", sf::Style::Close}
-    , field {Field::small}
+    : window {sf::VideoMode{512, 576}, "Minesweeper", sf::Style::Close}
+    , field {Field::medium}
+    , ui {window}
 {
+    // This comment is for the initializer list above.
+    // The game is set to open up with a medium board and the window is sized
+    // to fit a medium board.
 }
 
 void Game::run()
@@ -43,21 +47,21 @@ void Game::process_input()
     // Wihtout this, holding down LMB and dragging the mouse would keep reveal
     // every tile that the mouse goes over.
     if (mouse_pressed == true || !window.hasFocus()) {
-        if (!lmb_clicked && !rmb_clicked) {
+        if (!lmb_clicked && !rmb_clicked && !middle_click) {
             mouse_pressed = false;
         }
         return;
     }
-    else if (lmb_clicked) {
-        field.check_click(sf::Mouse::getPosition(window), sf::Mouse::Left);
+    else if (middle_click) {
+        field.check_click(sf::Mouse::getPosition(window), sf::Mouse::Middle);
         mouse_pressed = true;
     }
     else if (rmb_clicked) {
         field.check_click(sf::Mouse::getPosition(window), sf::Mouse::Right);
         mouse_pressed = true;
     }
-    else if (middle_click) {
-        field.check_click(sf::Mouse::getPosition(window), sf::Mouse::Middle);
+    else if (lmb_clicked) {
+        field.check_click(sf::Mouse::getPosition(window), sf::Mouse::Left);
         mouse_pressed = true;
     }
 }
@@ -72,6 +76,7 @@ void Game::render()
     window.clear();
 
     window.draw(field);
+    window.draw(ui);
 
     window.display();
 }

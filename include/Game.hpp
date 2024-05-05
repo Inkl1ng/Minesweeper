@@ -2,6 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 #include "Field.hpp"
+#include "UI.hpp"
 
 class Game {
 public:
@@ -19,6 +20,7 @@ private:
     sf::RenderWindow    window;
 
     Field   field;
+    UI      ui;
     
     bool    mouse_pressed   {false};
 };
