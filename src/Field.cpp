@@ -66,7 +66,7 @@ Field::~Field()
 
 }
 
-void Field::check_click(const sf::Vector2i click_pos, const bool right_click)
+void Field::check_click(const sf::Vector2i click_pos, const sf::Mouse::Button click_type)
 {
     // check that the click is wtihin the bounds of the field
     // if this isn't done then clicking outside the field will result in indeing
@@ -80,8 +80,13 @@ void Field::check_click(const sf::Vector2i click_pos, const bool right_click)
     const auto click_row = relative_pos.y / static_cast<int>(tile_size);
     const auto click_col = relative_pos.x / static_cast<int>(tile_size);
     
-    if (right_click) {
-        place_flag(click_row, click_col);
+    if (click_type == sf::Mouse::Right) {
+            place_flag(click_row, click_col);
+        return;
+    }
+    else if (grid[click_row][click_col] >= one && grid[click_row][click_col] <= eight
+            && click_type == sf::Mouse::Middle) {
+        chord(click_row, click_col);
         return;
     }
 
@@ -137,6 +142,49 @@ void Field::place_flag(const int click_row, const int click_col)
         vertex_grid[i + 5].texCoords.x = (flag + 1) * tile_size;
     }
 }
+
+void Field::chord(const int click_row, const int click_col) {
+    // Count the number of mines around the tile that was clicked.
+    int adjecent_flags {0};
+
+    auto is_flagged = [this](const int r, const int c) -> bool {
+        return vertex_grid[coord_to_index(r, c)].texCoords.x == flag * tile_size;
+    };
+
+    // No need to account for the tile that was chorded on because it is
+    // guaranteed to not be a flag.
+    for (auto r = click_row - 1; r < click_row + 2; ++r) {
+        for (auto c = click_col - 1; c < click_col + 2; ++c) {
+            if (is_within_grid(r, c) && is_flagged(r, c)) {
+                ++adjecent_flags;
+            }
+        }
+    }
+    // Chording is only allowed the number of adjacent flags is equal to the
+    // number on the tile.
+    if (adjecent_flags != grid[click_row][click_col]) {
+        return;
+    }
+
+    // Reveal all adjacent tiles.
+    for (auto r = click_row - 1; r < click_row + 2; ++r) {
+        for (auto c = click_col - 1; c < click_col + 2; ++c) {
+            if (!is_within_grid(r, c)) {
+                continue;
+            }
+            // Explode any mines that were revealed.
+            if (grid[r][c] == mine) {
+                // int version of tile_size needed for this part of the code.
+                constexpr int tile_size_i = static_cast<int>(tile_size);
+                check_click({c * tile_size_i, r * tile_size_i}, sf::Mouse::Button::Left);
+            }
+            else if (is_within_grid(r, c) && !is_flagged(r, c)) {
+                reveal(r, c);
+            }
+        }
+    }
+}
+
 
 void Field::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
@@ -277,3 +325,4 @@ std::size_t Field::coord_to_index(const int row, const int col) const
 {
     return ((row * grid[0].size()) + col) * 6;
 }
+

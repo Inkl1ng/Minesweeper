@@ -34,8 +34,10 @@ void Game::process_input()
     // The part after the || is for laptop users who might not have an easy to
     // use right click. Also I don't think that SFML is registering alt + click
     // which is commonly used on laptops to input a RMB click.
-    const bool rmb_clicked {sf::Mouse::isButtonPressed(sf::Mouse::Right)
+    const bool rmb_clicked {sf::Mouse::isButtonPressed(sf::Mouse::Right) 
         || lmb_clicked && sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt)};
+    const bool middle_click {sf::Mouse::isButtonPressed(sf::Mouse::Middle)
+        || sf::Keyboard::isKeyPressed(sf::Keyboard::Space)};
 
     // This makes sures that only one action is done per mouse click.
     // Wihtout this, holding down LMB and dragging the mouse would keep reveal
@@ -46,8 +48,16 @@ void Game::process_input()
         }
         return;
     }
-    else if (lmb_clicked || rmb_clicked) {
-        field.check_click(sf::Mouse::getPosition(window), rmb_clicked);
+    else if (lmb_clicked) {
+        field.check_click(sf::Mouse::getPosition(window), sf::Mouse::Left);
+        mouse_pressed = true;
+    }
+    else if (rmb_clicked) {
+        field.check_click(sf::Mouse::getPosition(window), sf::Mouse::Right);
+        mouse_pressed = true;
+    }
+    else if (middle_click) {
+        field.check_click(sf::Mouse::getPosition(window), sf::Mouse::Middle);
         mouse_pressed = true;
     }
 }
