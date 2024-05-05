@@ -1,8 +1,6 @@
 #include "Field.hpp"
 #include "SFML/System/Vector2.hpp"
 
-#include <cstddef>
-#include <iostream>
 #include <random>
 
 static constexpr float  tile_size   {32.f};
@@ -98,12 +96,18 @@ void Field::check_click(const sf::Vector2i click_pos, const sf::Mouse::Button cl
             place_flag(click_row, click_col);
         return;
     }
-    else if (is_number && click_type == sf::Mouse::Middle && been_clicked) {
+    else if (is_number && click_type == sf::Mouse::Middle
+            && !is_displayed_as(click_row, click_col, hidden)
+            && !is_displayed_as(click_row, click_col, flag)) {
         chord(click_row, click_col);
         return;
     }
     else if (click_type == sf::Mouse::Left && !been_clicked) {
         generate_field(click_row, click_col);
+    }
+    // At this point, any inputs that aren't left clicks shouldn't be processed.
+    else if (click_type != sf::Mouse::Left) {
+        return;
     }
     // Don't reveal the tile if the tile has been flagged.
     if (vertex_grid[coord_to_index(click_row, click_col)].texCoords.x == flag * tile_size) {
@@ -112,22 +116,17 @@ void Field::check_click(const sf::Vector2i click_pos, const sf::Mouse::Button cl
 
     // if the player clicked on a mine, reveal the entire grid
     if (grid[click_row][click_col] == mine && !mine_exploded) {
+        // Blow up the mine that was clicked on.
+        grid[click_row][click_col] = explosion;
         for (std::size_t r {0}; r < grid.size(); ++r) {
             for (std::size_t c {0}; c < grid[r].size(); ++c) {
                 reveal(r, c);
             }
         }
-        // set the bomb that was clicked on to be an explosion
-        grid[click_row][click_col] = explosion;
-        reveal(click_row, click_col);
         mine_exploded = true;
     }
     else {
         reveal(click_row, click_col);
-    }
-
-    if (tiles_revealed == (num_rows * num_cols) - num_mines) {
-        std::cout << "win!\n";
     }
 }
 
@@ -192,7 +191,7 @@ void Field::chord(const int click_row, const int click_col) {
             if (grid[r][c] == mine) {
                 // int version of tile_size needed for this part of the code.
                 constexpr int tile_size_i = static_cast<int>(tile_size);
-                check_click({c * tile_size_i, r * tile_size_i}, sf::Mouse::Button::Left);
+                check_click({c * tile_size_i, (r * tile_size_i) + 64}, sf::Mouse::Button::Left);
             }
             else if (!is_flagged(r, c)) {
                 reveal(r, c);
@@ -298,12 +297,14 @@ void Field::reveal(const int click_row, const int click_col)
         return vertex_grid[i].texCoords.x != hidden * tile_size;
     };
 
-    vertex_grid[i].texCoords.x = type * tile_size;
-    vertex_grid[i + 1].texCoords.x = (type + 1) * tile_size;
-    vertex_grid[i + 2].texCoords.x = type * tile_size;
-    vertex_grid[i + 3].texCoords.x = type * tile_size;
-    vertex_grid[i + 4].texCoords.x = (type + 1) * tile_size;
-    vertex_grid[i + 5].texCoords.x = (type + 1) * tile_size;
+    if (!is_revealed(click_row, click_col) || type == explosion) {
+        vertex_grid[i].texCoords.x = type * tile_size;
+        vertex_grid[i + 1].texCoords.x = (type + 1) * tile_size;
+        vertex_grid[i + 2].texCoords.x = type * tile_size;
+        vertex_grid[i + 3].texCoords.x = type * tile_size;
+        vertex_grid[i + 4].texCoords.x = (type + 1) * tile_size;
+        vertex_grid[i + 5].texCoords.x = (type + 1) * tile_size;
+    }
 
     if (type != empty) {
         return;
@@ -323,6 +324,12 @@ void Field::reveal(const int click_row, const int click_col)
 bool Field::is_within_grid(const int row, const int col) const
 {
     return row >= 0 && row < grid.size() && col >= 0 && col < grid[row].size();
+}
+
+bool Field::is_displayed_as(const int row, const int col, const Tile_type type) const
+{
+    std::size_t i {coord_to_index(row, col)};
+    return vertex_grid[i].texCoords.x == type * tile_size;
 }
 
 std::size_t Field::coord_to_index(const int row, const int col) const
