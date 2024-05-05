@@ -1,5 +1,7 @@
 #include "Field.hpp"
+#include "SFML/System/Vector2.hpp"
 
+#include <cstddef>
 #include <iostream>
 #include <random>
 
@@ -45,7 +47,7 @@ Field::Field(const Size size)
     // start the grid out as all hidden tiles
     for (std::size_t r{0}; r < grid.size(); ++r) {
         for (std::size_t c {0}; c < grid[r].size(); ++c) {
-            const auto i = coord_to_index(r, c);
+            const std::size_t i = coord_to_index(r, c);
             vertex_grid[i].position = sf::Vector2f{c * tile_size, r * tile_size};
             vertex_grid[i + 1].position = sf::Vector2f{(c + 1) * tile_size, r * tile_size};
             vertex_grid[i + 2].position = sf::Vector2f{c * tile_size, (r + 1) * tile_size};
@@ -78,16 +80,18 @@ void Field::check_click(const sf::Vector2i click_pos, const sf::Mouse::Button cl
     }
 
     // determine which row and column the click was on
-    const auto relative_pos = click_pos - sf::Vector2i{vertex_grid[0].position};
-    const auto click_row = relative_pos.y / static_cast<int>(tile_size);
-    const auto click_col = relative_pos.x / static_cast<int>(tile_size);
+    const sf::Vector2i relative_pos {click_pos - sf::Vector2i{vertex_grid[0].position}};
+    const int click_row {relative_pos.y / static_cast<int>(tile_size)};
+    const int click_col {relative_pos.x / static_cast<int>(tile_size)};
+
+    const bool is_number {grid[click_row][click_col] >= one
+        && grid[click_row][click_col] <= eight};
     
     if (click_type == sf::Mouse::Right) {
             place_flag(click_row, click_col);
         return;
     }
-    else if (grid[click_row][click_col] >= one && grid[click_row][click_col] <= eight
-            && click_type == sf::Mouse::Middle) {
+    else if (is_number && click_type == sf::Mouse::Middle) {
         chord(click_row, click_col);
         return;
     }
@@ -123,7 +127,7 @@ void Field::check_click(const sf::Vector2i click_pos, const sf::Mouse::Button cl
 
 void Field::place_flag(const int click_row, const int click_col)
 {
-    const auto i = coord_to_index(click_row, click_col);
+    const std::size_t i {coord_to_index(click_row, click_col)};
     // Get the type of tile displayed at the index
     const Tile_type displayed {static_cast<Tile_type>(vertex_grid[i].texCoords.x / tile_size)};
     // Can't place flags on tiles that are already revealed so don't do
@@ -159,8 +163,8 @@ void Field::chord(const int click_row, const int click_col) {
 
     // No need to account for the tile that was chorded on because it is
     // guaranteed to not be a flag.
-    for (auto r = click_row - 1; r < click_row + 2; ++r) {
-        for (auto c = click_col - 1; c < click_col + 2; ++c) {
+    for (int r {click_row - 1}; r < click_row + 2; ++r) {
+        for (int c {click_col - 1}; c < click_col + 2; ++c) {
             if (is_within_grid(r, c) && is_flagged(r, c)) {
                 ++adjecent_flags;
             }
@@ -173,8 +177,8 @@ void Field::chord(const int click_row, const int click_col) {
     }
 
     // Reveal all adjacent tiles.
-    for (auto r = click_row - 1; r < click_row + 2; ++r) {
-        for (auto c = click_col - 1; c < click_col + 2; ++c) {
+    for (int r {click_row - 1}; r < click_row + 2; ++r) {
+        for (int c {click_col - 1}; c < click_col + 2; ++c) {
             if (!is_within_grid(r, c)) {
                 continue;
             }
@@ -218,8 +222,8 @@ void Field::generate_field(const int click_row, const int click_col)
     std::uniform_int_distribution<std::size_t> rand_col {0, grid[0].size() - 1};
 
     for (int i {0}; i < num_mines; ++i) {
-        auto row {rand_row(mt)};
-        auto col {rand_col(mt)};
+        std::size_t row {rand_row(mt)};
+        std::size_t col {rand_col(mt)};
         while (row == click_row && col == click_col) {
             row = rand_row(mt);
             col = rand_row(mt);
@@ -245,7 +249,7 @@ void Field::generate_field(const int click_row, const int click_col)
                 continue;
             }
 
-            auto adjecent_mines = 0;
+            int adjecent_mines = 0;
             // this looks ugly but I don't know any other way to do this
             // goes through each adjecent spot and sees if it is a mine
             if (is_mine(r - 1, c - 1)) {
@@ -280,11 +284,11 @@ void Field::generate_field(const int click_row, const int click_col)
 void Field::reveal(const int click_row, const int click_col)
 {
     ++tiles_revealed;
-    const auto i = coord_to_index(click_row, click_col);
+    const std::size_t i = coord_to_index(click_row, click_col);
     const Tile_type type {grid[click_row][click_col]};
 
     auto is_revealed = [this](const int row, const int col) -> bool {
-        const auto i = coord_to_index(row, col);
+        const std::size_t i = coord_to_index(row, col);
         return vertex_grid[i].texCoords.x != hidden * tile_size;
     };
 
@@ -301,8 +305,8 @@ void Field::reveal(const int click_row, const int click_col)
 
     // Reveal all adjacent tiles if this tile is empty.
     // If any of those adjacent tiles are empty then reveal those.
-    for (auto r = click_row - 1; r < click_row + 2; ++r) {
-        for (auto c = click_col - 1; c < click_col + 2; ++c) {
+    for (int r {click_row - 1}; r < click_row + 2; ++r) {
+        for (int c {click_col - 1}; c < click_col + 2; ++c) {
             if (is_within_grid(r, c) && !is_revealed(r, c)) {
                 reveal(r, c);
             }

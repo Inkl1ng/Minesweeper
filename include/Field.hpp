@@ -12,7 +12,7 @@ public:
         big     // 16x30
     };
 
-            Field(Size size);
+    Field(Size size);
     virtual ~Field();
 
     void    check_click(sf::Vector2i click_pos, sf::Mouse::Button click_type);
@@ -20,12 +20,14 @@ public:
 
 private:
     virtual void    draw(sf::RenderTarget& target, sf::RenderStates states) const;
-    void            reveal(int click_row, int click_col);
-    void            place_flag(int click_row, int click_col);
-    void            chord(int click_row, int click_col);
+
+    void    reveal(int click_row, int click_col);
+    void    place_flag(int click_row, int click_col);
+    void    chord(int click_row, int click_col);
 
     // helper methods
-    bool        is_within_grid(int row, int col) const;
+    bool    is_within_grid(int row, int col) const;
+
     std::size_t coord_to_index(int row, int col) const;
 
 private:
@@ -47,13 +49,16 @@ private:
     };
 
     std::vector<std::vector<Tile_type>> grid;
-    sf::VertexArray                     vertex_grid;
-    Size                                size;
-    sf::Texture                         texture;
-    bool                                been_clicked    {false};
-    bool                                mine_exploded   {false};
-    int                                 tiles_revealed  {0};
-    int                                 num_mines       {};
-    int                                 num_rows        {};
-    int                                 num_cols        {};
+
+    sf::VertexArray vertex_grid;
+    sf::Texture     texture;
+
+    Size    size;
+    bool    been_clicked    {false};
+    bool    mine_exploded   {false};
+    int     tiles_revealed  {0};
+
+    int num_mines;
+    int num_rows;
+    int num_cols;
 };

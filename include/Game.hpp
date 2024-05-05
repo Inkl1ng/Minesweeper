@@ -17,6 +17,8 @@ private:
 
 private:
     sf::RenderWindow    window;
-    Field               field;
-    bool                mouse_pressed   {false};
+
+    Field   field;
+    
+    bool    mouse_pressed   {false};
 };
