@@ -16,7 +16,8 @@ FetchContent_MakeAvailable(SFML)
 set(src_files
     src/Field.cpp
     src/Game.cpp
-    src/main.cpp)
+    src/main.cpp
+    src/UI.cpp)
 
 add_executable(Minesweeper ${src_files})
 target_include_directories(Minesweeper PRIVATE include)
