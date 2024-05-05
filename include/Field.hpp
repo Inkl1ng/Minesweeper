@@ -52,4 +52,8 @@ private:
     sf::Texture                         texture;
     bool                                been_clicked    {false};
     bool                                mine_exploded   {false};
+    int                                 tiles_revealed  {0};
+    int                                 num_mines       {};
+    int                                 num_rows        {};
+    int                                 num_cols        {};
 };

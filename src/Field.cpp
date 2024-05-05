@@ -1,5 +1,6 @@
 #include "Field.hpp"
 
+#include <iostream>
 #include <random>
 
 static constexpr float  tile_size   {32.f};
@@ -9,20 +10,21 @@ Field::Field(const Size size)
 {
     texture.loadFromFile("sprites.png");
 
-    int num_rows {};
-    int num_cols {};
     switch (this->size) {
     case small:
         num_rows = 9;
         num_cols = 9;
+        num_mines = 10;
         break;
     case medium:
         num_rows = 16;
         num_cols = 16;
+        num_mines = 40;
         break;
     case big:
         num_rows = 16;
         num_cols = 30;
+        num_mines = 99;
         break;
     }
 
@@ -113,6 +115,10 @@ void Field::check_click(const sf::Vector2i click_pos, const sf::Mouse::Button cl
     else {
         reveal(click_row, click_col);
     }
+
+    if (tiles_revealed == (num_rows * num_cols) - num_mines) {
+        std::cout << "win!\n";
+    }
 }
 
 void Field::place_flag(const int click_row, const int click_col)
@@ -197,19 +203,6 @@ void Field::generate_field(const int click_row, const int click_col)
 {
     // make sure that the field doesn't get generated again on the next click
     been_clicked = true;
-    // randomly generate the position of the mines
-    int num_mines {};
-    switch (size) {
-    case small:
-        num_mines = 10;
-        break;
-    case medium:
-        num_mines = 40;
-        break;
-    case big:
-        num_mines = 99;
-        break;
-    };
 
     for (auto& col : grid) {
         for (auto& tile : col) {
@@ -286,6 +279,7 @@ void Field::generate_field(const int click_row, const int click_col)
 
 void Field::reveal(const int click_row, const int click_col)
 {
+    ++tiles_revealed;
     const auto i = coord_to_index(click_row, click_col);
     const Tile_type type {grid[click_row][click_col]};
 
