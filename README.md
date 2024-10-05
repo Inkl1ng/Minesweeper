@@ -1,2 +1,2 @@
 # Minesweeper
-Made in SFML and C++!
+Made in Raylib and C!
