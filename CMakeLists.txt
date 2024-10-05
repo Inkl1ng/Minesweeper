@@ -1,27 +1,29 @@
-cmake_minimum_required(VERSION 3.20)
-project(Minesweeper LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.22)
+project(Minesweeper C)
 
-set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 
-include(FetchContent)
-FetchContent_Declare(
-    SFML
-    GIT_REPOSITORY https://github.com/SFML/SFML.git
-    GIT_TAG 2.6.x
-)
-FetchContent_MakeAvailable(SFML)
+set(RAYLIB_VERSION 5.0)
+find_package(raylib ${RAYLIB_VERSION} QUIET) # QUIET or REQUIRED
+if (NOT raylib_FOUND) # If there's none, fetch and build raylib
+  include(FetchContent)
+  FetchContent_Declare(
+    raylib
+    DOWNLOAD_EXTRACT_TIMESTAMP OFF
+    URL https://github.com/raysan5/raylib/archive/refs/tags/${RAYLIB_VERSION}.tar.gz
+  )
+  FetchContent_GetProperties(raylib)
+  if (NOT raylib_POPULATED) # Have we downloaded raylib yet?
+    set(FETCHCONTENT_QUIET NO)
+    FetchContent_Populate(raylib)
+    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build the supplied examples
+    add_subdirectory(${raylib_SOURCE_DIR} ${raylib_BINARY_DIR})
+  endif()
+endif()
 
-set(src_files
-    src/Field.cpp
-    src/Game.cpp
-    src/main.cpp
-    src/UI.cpp)
+file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/src/*.c")
 
-add_executable(Minesweeper ${src_files})
-target_include_directories(Minesweeper PRIVATE include)
-target_link_libraries(Minesweeper PRIVATE sfml-graphics sfml-window sfml-audio sfml-system)
-target_compile_features(Minesweeper PRIVATE cxx_std_17)
-
-INSTALL(TARGETS Minesweeper)
+add_executable(${PROJECT_NAME})
+target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCES})
+target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
+target_compile_definitions(${PROJECT_NAME} PRIVATE ASSET_PATH="${CMAKE_SOURCE_DIR}/assets")
